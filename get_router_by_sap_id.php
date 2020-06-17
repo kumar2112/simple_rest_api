@@ -1,4 +1,7 @@
 <?php
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 header("Access-Control-Allow-Origin: http://localhost/simple-rest-api/");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
@@ -18,7 +21,7 @@ use \Firebase\JWT\JWT;
 // get database connection
 $database = new Database();
 $db = $database->getConnection();
-
+$router=new Router($db);
 $data = json_decode(file_get_contents("php://input"));
 
 if(empty($data->jwt)){
@@ -41,7 +44,7 @@ try {
     ));
     return;
 }
-if(empty($data->client_ip_address)){
+if(empty($data->sap_id)){
     http_response_code(503);
     echo json_encode(array("message" => "Ip address is required."));
     return;
@@ -52,10 +55,16 @@ if(!$router->checkUnique('sap_id',$data->sap_id)){
     return;
 }
 
-$router=new Router($db);
-$router->client_ip_address = $data->client_ip_address;
-if($router->softDeleteRouter()){
+
+//$router->sap_id = $data->sap_id;
+
+$routerData=$router->getRouterBySapId($data->sap_id);
+if($routerData){
   http_response_code(200);
-  echo json_encode(array("message" => "Router deactivated success fully."));
+  echo json_encode(array("message" => "success.","data"=>$routerData));
+  return;
+}else{
+  http_response_code(600);
+  echo json_encode(array("message" => "some thing went wrong."));
   return;
 }

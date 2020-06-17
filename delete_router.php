@@ -1,5 +1,8 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost/rest-api/");
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+header("Access-Control-Allow-Origin: http://localhost/simple-rest-api/");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Max-Age: 3600");
@@ -18,6 +21,7 @@ use \Firebase\JWT\JWT;
 // get database connection
 $database = new Database();
 $db = $database->getConnection();
+$router=new Router($db);
 
 $data = json_decode(file_get_contents("php://input"));
 
@@ -52,7 +56,7 @@ if(!$router->checkUnique('client_ip_address',$data->client_ip_address)){
     return;
 }
 
-$router=new Router($db);
+
 $router->client_ip_address = $data->client_ip_address;
 if($router->softDeleteRouter()){
   http_response_code(200);

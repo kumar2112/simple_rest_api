@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 header("Access-Control-Allow-Origin: http://localhost/simple-rest-api/");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
@@ -32,16 +35,16 @@ if(empty($data->password)){
     echo json_encode(array("message" => "Password is required."));
     return;
 }
-if(!$router->checkUnique('email',$data->email)){
+if(!$user->checkUnique('email',$data->email)){
     http_response_code(504);
     echo json_encode(array("message" => "An user already exists with given email."));
     return;
 }
-
 //set user property values
 $user->name = $data->name;
 $user->email = $data->email;
 $user->password = $data->password;
+
 if($user->create()){
   http_response_code(200);
   // display message: user was created

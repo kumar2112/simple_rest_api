@@ -1,5 +1,8 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost/rest-api/");
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+header("Access-Control-Allow-Origin: http://localhost/simple-rest-api/");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Max-Age: 3600");
@@ -9,7 +12,7 @@ include_once 'config/database.php';
 include_once 'config/core.php';
 include_once 'objects/router.php';
 
-include_once 'config/core.php';
+
 include_once 'libs/php-jwt-master/src/BeforeValidException.php';
 include_once 'libs/php-jwt-master/src/ExpiredException.php';
 include_once 'libs/php-jwt-master/src/SignatureInvalidException.php';
@@ -20,6 +23,7 @@ $database = new Database();
 $db = $database->getConnection();
 
 $data = json_decode(file_get_contents("php://input"));
+
 
 if(empty($data->jwt)){
     http_response_code(505);
@@ -41,11 +45,14 @@ try {
     ));
     return;
 }
+
 if(empty($data->client_ip_startswith)){
     http_response_code(503);
     echo json_encode(array("message" => "Starting Ip is required."));
     return;
 }
+echo "<pre>";
+print_r($data);
 
 
 $router=new Router($db);

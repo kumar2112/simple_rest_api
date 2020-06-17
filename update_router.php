@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 header("Access-Control-Allow-Origin: http://localhost/simple-rest-api/");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
@@ -64,6 +67,8 @@ if(isset($data->mac_address)){
 
 
 $router=new Router($db);
+
+$router->client_ip_address = $data->client_ip_address;
 if(isset($data->mac_address)){
     $router->sap_id = $data->sap_id;
 }
@@ -71,7 +76,7 @@ if(isset($data->mac_address)){
     $router->internet_host_name = $data->internet_host_name;
 }
 
-$router->client_ip_address = $data->client_ip_address;
+
 if(isset($data->mac_address)){
     $router->mac_address = $data->mac_address;
 }

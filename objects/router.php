@@ -168,35 +168,26 @@ class Router{
       }
 
       function softDeleteRouter(){
-        $query = "UPDATE  " . $this->table_name . "
-                  SET
-                    is_deleted = :is_deleted,
-                  WHERE client_ip_address=?";
+        $query = "UPDATE  " . $this->table_name . " SET is_deleted = :is_deleted WHERE client_ip_address=:client_ip_address";
 
         // prepare the query
         $stmt = $this->conn->prepare($query);
-
-        // sanitize
-        // $this->sap_id=htmlspecialchars(strip_tags($this->sap_id));
-        // $this->internet_host_name=htmlspecialchars(strip_tags($this->internet_host_name));
         $this->client_ip_address=htmlspecialchars(strip_tags($this->client_ip_address));
-        //$this->mac_address=htmlspecialchars(strip_tags($this->mac_address));
 
+        $data = [
+                    'is_deleted' => 1,
+                    'client_ip_address' => $this->client_ip_address
+
+                ];
         // bind the values
-        // $stmt->bindParam(':sap_id', $this->sap_id);
-        // $stmt->bindParam(':internet_host_name', $this->internet_host_name);
-        //$stmt->bindParam(':client_ip_address', $this->client_ip_address);
-        //$stmt->bindParam(':mac_address', $this->mac_address);
-
-        $stmt->bindParam(1, $this->client_ip_address);
-        if($stmt->execute()){
+        if($stmt->execute($data)){
             return true;
         }
         return false;
       }
 
-      function getRouterBySapId($sap_id){
-        $query = "SELECT sap_id, internet_host_name, client_ip_address, mac_address FROM " . $this->table_name . "
+      function getRouterBySapId($sap_Id){
+        $query = "SELECT id,sap_id, internet_host_name, client_ip_address, mac_address FROM " . $this->table_name . "
                   WHERE sap_id = ?
                   LIMIT 0,1";
 
@@ -204,10 +195,10 @@ class Router{
         $stmt = $this->conn->prepare( $query );
 
         // sanitize
-        $this->sap_id=htmlspecialchars(strip_tags($this->sap_id));
+        $sap_Id=htmlspecialchars(strip_tags($sap_Id));
 
         // bind given email value
-        $stmt->bindParam(1, $this->sap_id);
+        $stmt->bindParam(1, $sap_Id);
 
         // execute the query
         $stmt->execute();
@@ -222,14 +213,21 @@ class Router{
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // assign values to object properties
-            $this->id = $row['id'];
-            $this->sap_id = $row['sap_id'];
-            $this->internet_host_name = $row['internet_host_name'];
-            $this->client_ip_address = $row['client_ip_address'];
-            $this->mac_address = $row['mac_address'];
+            // $this->id = $row['id'];
+            // $this->sap_id = $row['sap_id'];
+            // $this->internet_host_name = $row['internet_host_name'];
+            // $this->client_ip_address = $row['client_ip_address'];
+            // $this->mac_address = $row['mac_address'];
+            $data[]=array(
+                        'id'=>$row['id'],
+                        'sap_id'=>$row['sap_id'],
+                        'internet_host_name'=>$row['internet_host_name'],
+                        'client_ip_address'=>$row['client_ip_address'],
+                        'mac_address'=>$row['mac_address']
+                    );
 
             // return true because ip exists in the database
-            return true;
+            return $data;
         }
 
         // return false if email does not exist in the database
@@ -238,28 +236,27 @@ class Router{
 
       function getRouterByIpRange($ip_startsWith){
         $query = "SELECT sap_id, internet_host_name, client_ip_address, mac_address FROM " . $this->table_name . "
-                  WHERE client_ip_address LIKE $ip_startsWith%";
+                  WHERE client_ip_address LIKE ?%";
 
         // prepare the query
         $stmt = $this->conn->prepare( $query );
 
         //sanitize
         $ip_startsWith=htmlspecialchars(strip_tags($ip_startsWith));
-        //
-        // // bind given email value
-        //$stmt->bindParam(1, $ip_startsWith."%");
-        //
-        // // execute the query
-        $stmt->execute();
-        //
+        $params = array($ip_startsWith);
+
+        //execute the query
+        $stmt->execute($params);
+
         // // get number of rows
         $num = $stmt->rowCount();
         //
         // // if ip exists, assign values to object properties for easy access and use for php sessions
+        $routersArray=array();
         if($num>0){
         //
         //     // get record details / values
-        //     $routersArray=array();
+
                 $stmt->setFetchMode(PDO::FETCH_ASSOC);
                 $data = $stmt->fetchALl();
                 foreach($data as $d){
@@ -268,9 +265,9 @@ class Router{
                     // assign values to object properties
                     $rout->id = $d->id;
                     $rout->sap_id = $d->sap_id;
-                    $rout->internet_host_name = $d->internet_host_name,
-                    $rout->client_ip_address = $d->client_ip_address
-                    $rout->mac_address = $d->mac_address
+                    $rout->internet_host_name = $d->internet_host_name;
+                    $rout->client_ip_address = $d->client_ip_address;
+                    $rout->mac_address = $d->mac_address;
                     $routersArray[]=$rout;
                     unset($rout);
                     // return true because ip exists in the database
